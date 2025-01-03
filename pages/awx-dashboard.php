@@ -163,49 +163,53 @@
       return new Date(timestamp).toLocaleString();
     }
 
-    // Function to load job activity stream
+    // Function to load job events
     function loadJobEvents(jobId) {
       queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/job_events").done(function(data) {
-        if (data.result === "Success" && data.data && data.data.results) {
-          let activityHtml = `
+        if (data.result === "Success" && data.data && Array.isArray(data.data)) {
+          let eventsHtml = `
             <div class="mb-3">
-              <h6>Activity Stream</h6>
+              <h6>Job Events</h6>
               <div class="table-responsive">
                 <table class="table table-sm">
                   <thead>
                     <tr>
                       <th>Time</th>
-                      <th>Action</th>
-                      <th>Description</th>
+                      <th>Event</th>
+                      <th>Task</th>
+                      <th>Host</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
-                  <tbody>
-          `;
+                  <tbody>`;
 
-          data.data.results.forEach(activity => {
-            activityHtml += `
+          data.data.forEach(event => {
+            const eventTime = new Date(event.created).toLocaleString();
+            const statusClass = event.failed ? 'text-danger' : (event.changed ? 'text-warning' : 'text-success');
+            
+            eventsHtml += `
               <tr>
-                <td>${formatActivityTime(activity.timestamp)}</td>
-                <td>${activity.operation || ""}</td>
-                <td>${activity.changes || activity.description || ""}</td>
-              </tr>
-            `;
+                <td>${eventTime}</td>
+                <td>${event.event_display || event.event || ""}</td>
+                <td>${event.task || ""}</td>
+                <td>${event.host_name || ""}</td>
+                <td><span class="${statusClass}">${event.failed ? 'Failed' : (event.changed ? 'Changed' : 'OK')}</span></td>
+              </tr>`;
           });
 
-          activityHtml += `
+          eventsHtml += `
                   </tbody>
                 </table>
               </div>
-            </div>
-          `;
+            </div>`;
 
-          $("#jobActivityStream").html(activityHtml);
+          $("#jobActivityStream").html(eventsHtml);
         } else {
-          $("#jobActivityStream").html("<div class=\"alert alert-info\">No activity stream available</div>");
+          $("#jobActivityStream").html('<div class="alert alert-warning">No job events available</div>');
         }
       }).fail(function(jqXHR, textStatus, errorThrown) {
-        $("#jobActivityStream").html("<div class=\"alert alert-danger\">Failed to load activity stream</div>");
-        console.error("Activity Stream Error:", jqXHR.responseText);
+        $("#jobActivityStream").html('<div class="alert alert-danger">Failed to load job events: ' + (errorThrown || textStatus) + '</div>');
+        console.error("API Error:", jqXHR.responseText);
       });
     }
 
