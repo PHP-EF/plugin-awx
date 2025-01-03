@@ -155,6 +155,20 @@ class awxPluginAnsible extends awxPlugin {
 		$this->api->setAPIResponse('Warning','No results returned from the API');
 	  }
 	}
+
+	public function GetAnsibleJobActivityStream($id) {
+	  if ($id) {
+	    $Result = $this->QueryAnsible("get", "jobs/" . $id . "/activity_stream");
+	    if ($Result) {
+		  $this->api->setAPIResponseData($Result);
+		  return $Result;
+	    } else {
+		  $this->api->setAPIResponse('Warning','No activity stream results returned from the API');
+	    }
+	  } else {
+		$this->api->setAPIResponse('Error','Job ID is required');
+	  }
+	}
 	
 	public function SubmitAnsibleJob($id,$data) {
 	  $Result = $this->QueryAnsible("post", "job_templates/".$id."/launch/", $data);

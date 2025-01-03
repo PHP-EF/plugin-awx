@@ -244,6 +244,58 @@
       return `${remainingSeconds}s`;
     }
 
+    // Function to format activity timestamp
+    function formatActivityTime(timestamp) {
+      if (!timestamp) return "";
+      return new Date(timestamp).toLocaleString();
+    }
+
+    // Function to load job activity stream
+    function loadJobActivityStream(jobId) {
+      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/activity_stream").done(function(data) {
+        if (data.result === "Success" && data.data && data.data.results) {
+          let activityHtml = `
+            <div class="mb-3">
+              <h6>Activity Stream</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Action</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          data.data.results.forEach(activity => {
+            activityHtml += `
+              <tr>
+                <td>${formatActivityTime(activity.timestamp)}</td>
+                <td>${activity.operation || ""}</td>
+                <td>${activity.changes || activity.description || ""}</td>
+              </tr>
+            `;
+          });
+
+          activityHtml += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+
+          $("#jobActivityStream").html(activityHtml);
+        } else {
+          $("#jobActivityStream").html('<div class="alert alert-info">No activity stream available</div>');
+        }
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        $("#jobActivityStream").html('<div class="alert alert-danger">Failed to load activity stream</div>');
+        console.error("Activity Stream Error:", jqXHR.responseText);
+      });
+    }
+
     // Function to view job details
     function viewJobDetails(jobId) {
       queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId).done(function(data) {
@@ -274,7 +326,7 @@
             detailsHtml += `
               <div class="mb-3">
                 <h6>Job Explanation</h6>
-                <div class="alert \${details.failed ? \'alert-danger\' : \'alert-info\'}">
+                <div class="alert \${details.failed ? 'alert-danger' : 'alert-info'}">
                   ${details.job_explanation}
                 </div>
               </div>`;
@@ -294,8 +346,13 @@
             }
           }
 
+          detailsHtml += '<div id="jobActivityStream"></div>';
+
           $("#jobDetails").html(detailsHtml);
           $("#jobDetailsModal").modal("show");
+          
+          // Load activity stream after showing modal
+          loadJobActivityStream(jobId);
         } else {
           showToast("Error", "Failed to fetch job details: " + data.message);
         }

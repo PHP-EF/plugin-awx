@@ -70,6 +70,22 @@ $app->get('/plugin/awx/ansible/jobs/{id}', function ($request, $response, $args)
         ->withStatus($GLOBALS['responseCode']);
 });
 
+// Get specific Ansible Job Activity Stream
+$app->get('/plugin/awx/ansible/jobs/{id}/activity_stream', function ($request, $response, $args) {
+    $awxPlugin = new awxPluginAnsible();
+    if ($awxPlugin->auth->checkAccess($awxPlugin->config->get('Plugins','awx')['ACL-JOB'] ?? null)) {
+        $jobId = $args['id'];
+        $job = $awxPlugin->GetAnsibleJobActivityStream($jobId);
+        if ($job) {
+            $awxPlugin->api->setAPIResponseData($job);
+        }
+    }
+    $response->getBody()->write(jsonE($GLOBALS['api']));
+    return $response
+        ->withHeader('Content-Type', 'application/json;charset=UTF-8')
+        ->withStatus($GLOBALS['responseCode']);
+});
+
 // Get AWX Jobs
 $app->get('/plugin/awx/ansible/awx/jobs', function ($request, $response, $args) {
 	$awxPlugin = new awxPluginAnsible();
