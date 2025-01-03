@@ -164,8 +164,8 @@
     }
 
     // Function to load job activity stream
-    function loadJobActivityStream(jobId) {
-      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/activity_stream").done(function(data) {
+    function loadJobEvents(jobId) {
+      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/job_events").done(function(data) {
         if (data.result === "Success" && data.data && data.data.results) {
           let activityHtml = `
             <div class="mb-3">
@@ -265,7 +265,7 @@
           $("#jobDetailsModal").modal("show");
           
           // Load activity stream after showing modal
-          loadJobActivityStream(details.id);
+          loadJobEvents(details.id);
         } else {
           showToast("Error", "Failed to fetch job details: " + data.message);
         }
