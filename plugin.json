@@ -1,0 +1,17 @@
+[
+    {
+      "name": "awx",
+      "repo": "https://github.com/tinytechlabuk/php-ef-awx-dashboard",
+      "author": "TinyTechLabUK",
+      "category": "Ansible AWX",
+      "description": "This PHP-EF plugin provides an Ansibele AWX dashboard with Ansible Integration.",
+      "icon": "https://raw.githubusercontent.com/TehMuffinMoo/php-ef-plugin-cmdb/main/logo.png",
+      "contact": "https://github.com/tinytechlabuk/php-ef-awx-dashboard/issues",
+      "link": "https://github.com/tinytechlabuk/php-ef-awx-dashboard",
+      "version": "1.0.0",
+      "minimum_php-ef_version": "0.7.2",
+      "release_date": "2024-12-20",
+      "last_updated": "2024-12-30",
+      "github_folder": ""
+    }
+]
