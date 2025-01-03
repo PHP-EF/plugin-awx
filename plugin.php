@@ -169,6 +169,41 @@ class awxPluginAnsible extends awxPlugin {
 		$this->api->setAPIResponse('Error','Job ID is required');
 	  }
 	}
+
+	public function GetAnsibleActivityStream($id) {
+		if ($id) {
+		  $Result = $this->QueryAnsible("get", "activity_stream/".$id);
+		  if ($Result) {
+			$this->api->setAPIResponseData($Result);
+			return $Result;
+		  } else {
+			$this->api->setAPIResponse('Warning','No activity stream results returned from the API');
+		  }
+		} else {
+		  $this->api->setAPIResponse('Error','Activity Stream ID is required');
+		}
+	  }
+  
+  
+	  // Get specific Ansible Job Activity Stream
+	  $app->get('/plugin/awx/ansible/jobs/{id}/activity_stream', function ($request, $response, $args) {
+		  $awxPlugin = new awxPluginAnsible();
+		  if ($awxPlugin->auth->checkAccess($awxPlugin->config->get('Plugins','awx')['ACL-JOB'] ?? null)) {
+			  $jobId = $args['id'];
+			  $job = $awxPlugin->GetAnsibleJobActivityStream($jobId);
+			  if ($job) {
+				  $activityStream = $awxPlugin->GetAnsibleActivityStream($job['id'])
+				  if ($activityStream) {
+					  $awxPlugin->api->setAPIResponseData($activityStream);
+				  }
+			  }
+		  }
+		  $response->getBody()->write(jsonE($GLOBALS['api']));
+		  return $response
+			  ->withHeader('Content-Type', 'application/json;charset=UTF-8')
+			  ->withStatus($GLOBALS['responseCode']);
+	});
+
 	
 	public function SubmitAnsibleJob($id,$data) {
 	  $Result = $this->QueryAnsible("post", "job_templates/".$id."/launch/", $data);

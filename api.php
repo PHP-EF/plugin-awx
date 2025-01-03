@@ -77,7 +77,10 @@ $app->get('/plugin/awx/ansible/jobs/{id}/activity_stream', function ($request, $
         $jobId = $args['id'];
         $job = $awxPlugin->GetAnsibleJobActivityStream($jobId);
         if ($job) {
-            $awxPlugin->api->setAPIResponseData($job);
+            $activityStream = $awxPlugin->GetAnsibleActivityStream($job['id']);
+            if ($activityStream) {
+                $awxPlugin->api->setAPIResponseData($activityStream);
+            }
         }
     }
     $response->getBody()->write(jsonE($GLOBALS['api']));
