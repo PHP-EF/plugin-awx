@@ -167,6 +167,9 @@
     function loadJobEvents(jobId) {
       queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/job_events").done(function(data) {
         if (data.result === "Success" && data.data && Array.isArray(data.data)) {
+          var events = data.data.filter(function(event) {
+            return event.event !== "verbose" && event.event !== "warning";
+          });
           var eventsHtml = 
             "<div class=\"mb-3\">" +
               "<h6>Job Events</h6>" +
@@ -183,7 +186,7 @@
                   "</thead>" +
                   "<tbody>";
 
-          data.data.forEach(function(event) {
+          events.forEach(function(event) {
             var eventTime = new Date(event.created).toLocaleString();
             var statusClass = event.failed ? "text-danger" : (event.changed ? "text-warning" : "text-success");
             
