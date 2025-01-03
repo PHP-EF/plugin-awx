@@ -90,40 +90,42 @@ class awxPluginAnsible extends awxPlugin {
 		} else {
 			$Result = $this->api->query->$Method($Url,$Data,$AnsibleHeaders,null,true);
 		}
-		if (isset($Result->status_code)) {
-		  if ($Result->status_code >= 400 && $Result->status_code < 600) {
-			switch($Result->status_code) {
-			  case 401:
-				$this->api->setAPIResponse('Error','Ansible API Key incorrect or expired');
-				$this->logging->writeLog("Ansible","Error. Ansible API Key incorrect or expired.","error");
-				break;
-			  case 404:
-				$this->api->setAPIResponse('Error','HTTP 404 Not Found');
-				break;
-			  default:
-				$this->api->setAPIResponse('Error','HTTP '.$Result->status_code);
-				break;
-			}
-		  }
-		}
+		
 		if ($Result->body) {
 		  $Output = json_decode($Result->body,true);
-		  if (isset($Output['results'])) {
-		    // Handle pagination
-		    if (isset($Output['next']) && $Output['next'] !== null) {
-		      $nextUrl = str_replace($AnsibleUrl."/api/v2/", "", $Output['next']);
-		      $nextResult = $this->QueryAnsible("get", $nextUrl);
-		      if ($nextResult && is_array($nextResult)) {
-		        $Output['results'] = array_merge($Output['results'], $nextResult);
+		  
+		  // Check if this is a paginated response
+		  if (isset($Output['next']) && isset($Output['results'])) {
+		    $allResults = $Output['results'];
+		    $nextUrl = $Output['next'];
+		    
+		    // Keep fetching next pages while available
+		    while ($nextUrl) {
+		      $nextResult = $this->api->query->get($nextUrl, $AnsibleHeaders, null, true);
+		      if ($nextResult && $nextResult->body) {
+		        $nextOutput = json_decode($nextResult->body, true);
+		        if (isset($nextOutput['results'])) {
+		          $allResults = array_merge($allResults, $nextOutput['results']);
+		          $nextUrl = $nextOutput['next'] ?? null;
+		        } else {
+		          break;
+		        }
+		      } else {
+		        break;
 		      }
 		    }
-		    return $Output['results'];
-		  } else {
-		    return $Output;
+		    
+		    $this->api->setAPIResponseData($allResults);
+		    return $allResults;
 		  }
-		} else {
-		  $this->api->setAPIResponse('Warning','No results returned from the API');
+		  
+		  // Non-paginated response
+		  $this->api->setAPIResponseData($Output);
+		  return $Output;
 		}
+		
+		$this->api->setAPIResponse('Warning','No results returned from the API');
+		return false;
 	}
 	
 	public function GetAnsibleJobTemplate($id = null,$label = null) {
