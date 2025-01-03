@@ -101,12 +101,20 @@ class awxPluginAnsible extends awxPlugin {
 		    
 		    // Keep fetching next pages while available
 		    while ($nextUrl) {
+		      // Ensure the next URL is absolute
+		      if (strpos($nextUrl, 'http') !== 0) {
+		        $nextUrl = $AnsibleUrl . $nextUrl;
+		      }
+		      
 		      $nextResult = $this->api->query->get($nextUrl, $AnsibleHeaders, null, true);
 		      if ($nextResult && $nextResult->body) {
 		        $nextOutput = json_decode($nextResult->body, true);
 		        if (isset($nextOutput['results'])) {
 		          $allResults = array_merge($allResults, $nextOutput['results']);
 		          $nextUrl = $nextOutput['next'] ?? null;
+		          if ($nextUrl && strpos($nextUrl, 'http') !== 0) {
+		            $nextUrl = $AnsibleUrl . $nextUrl;
+		          }
 		        } else {
 		          break;
 		        }
