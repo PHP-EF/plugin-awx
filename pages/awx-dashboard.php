@@ -352,7 +352,7 @@
           $("#jobDetailsModal").modal("show");
           
           // Load activity stream after showing modal
-          loadJobActivityStream(jobId);
+          loadJobActivityStream(details.id);
         } else {
           showToast("Error", "Failed to fetch job details: " + data.message);
         }
