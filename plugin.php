@@ -109,12 +109,20 @@ class awxPluginAnsible extends awxPlugin {
 		if ($Result->body) {
 		  $Output = json_decode($Result->body,true);
 		  if (isset($Output['results'])) {
-				return $Output['results'];
+		    // Handle pagination
+		    if (isset($Output['next']) && $Output['next'] !== null) {
+		      $nextUrl = str_replace($AnsibleUrl."/api/v2/", "", $Output['next']);
+		      $nextResult = $this->QueryAnsible("get", $nextUrl);
+		      if ($nextResult && is_array($nextResult)) {
+		        $Output['results'] = array_merge($Output['results'], $nextResult);
+		      }
+		    }
+		    return $Output['results'];
 		  } else {
-				return $Output;
+		    return $Output;
 		  }
 		} else {
-				$this->api->setAPIResponse('Warning','No results returned from the API');
+		  $this->api->setAPIResponse('Warning','No results returned from the API');
 		}
 	}
 	
