@@ -263,7 +263,7 @@
             detailsHtml += `
               <div class="mb-3">
                 <h6>Job Explanation</h6>
-                <div class="alert ${details.failed ? 'alert-danger' : 'alert-info'}">
+                <div class="alert \${details.failed ? \'alert-danger\' : \'alert-info\'}">
                   ${details.job_explanation}
                 </div>
               </div>`;
