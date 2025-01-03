@@ -233,6 +233,17 @@
       });
     }
 
+    // Function to format elapsed time
+    function formatElapsedTime(seconds) {
+      if (!seconds) return "";
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = (seconds % 60).toFixed(0);
+      if (minutes > 0) {
+        return `${minutes}m ${remainingSeconds}s`;
+      }
+      return `${remainingSeconds}s`;
+    }
+
     // Function to view job details
     function viewJobDetails(jobId) {
       queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId).done(function(data) {
@@ -248,7 +259,7 @@
                 <tr><td><strong>Status:</strong></td><td><span class="badge ${getStatusBadgeClass(details.status)}">${details.status || ""}</span></td></tr>
                 <tr><td><strong>Started:</strong></td><td>${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
                 <tr><td><strong>Finished:</strong></td><td>${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
-                <tr><td><strong>Elapsed:</strong></td><td>${details.elapsed ? details.elapsed.toFixed(2) + " seconds" : ""}</td></tr>
+                <tr><td><strong>Elapsed:</strong></td><td>${formatElapsedTime(details.elapsed)}</td></tr>
                 <tr><td><strong>Template:</strong></td><td>${details.summary_fields?.job_template?.name || ""}</td></tr>
                 <tr><td><strong>Project:</strong></td><td>${details.summary_fields?.project?.name || ""}</td></tr>
                 <tr><td><strong>Inventory:</strong></td><td>${details.summary_fields?.inventory?.name || ""}</td></tr>
