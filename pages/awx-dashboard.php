@@ -125,6 +125,11 @@
   </div>
 
   <script>
+    // Toast notification function
+    function showToast(title, message, type = "error") {
+      toast(title, "", message, type === "error" ? "danger" : type);
+    }
+
     // Function to update statistics
     function updateStatistics(jobs) {
       const stats = {
@@ -191,7 +196,7 @@
           title: "Started",
           sortable: true,
           formatter: function(value) {
-            return new Date(value).toLocaleString();
+            return value ? new Date(value).toLocaleString() : "";
           }
         }, {
           field: "finished",
@@ -204,46 +209,61 @@
           field: "operate",
           title: "Actions",
           align: "center",
-          formatter: function() {
+          formatter: function(value, row) {
             return [
-              `<button class="btn btn-primary btn-sm view" title="View Job Details">`,
+              `<button class="btn btn-primary btn-sm view-job" title="View Job Details" data-job-id="${row.id}">`,
               `<i class="bi bi-eye"></i>`,
               `</button>`
             ].join("");
           },
           events: {
-            "click .view": function(e, value, row) {
-              viewJobDetails(row);
+            "click .view-job": function(e, value, row) {
+              e.preventDefault();
+              viewJobDetails(row.id);
             }
           }
         }]
       });
+
+      // Add click handler for view job button
+      $(document).on("click", ".view-job", function(e) {
+        e.preventDefault();
+        const jobId = $(this).data("job-id");
+        viewJobDetails(jobId);
+      });
     }
 
     // Function to view job details
-    function viewJobDetails(job) {
-      queryAPI("GET", `/api/plugin/awx/ansible/job/${job.id}`).done(function(data) {
+    function viewJobDetails(jobId) {
+      queryAPI("GET", "/api/plugin/awx/job/" + jobId).done(function(data) {
         if (data.result === "Success") {
           const details = data.data;
           let detailsHtml = `
             <div class="mb-3">
               <h6>Job Information</h6>
               <table class="table">
-                <tr><td><strong>Name:</strong></td><td>${details.name}</td></tr>
-                <tr><td><strong>Status:</strong></td><td><span class="badge ${getStatusBadgeClass(details.status)}">${details.status}</span></td></tr>
-                <tr><td><strong>Started:</strong></td><td>${new Date(details.started).toLocaleString()}</td></tr>
+                <tr><td><strong>Name:</strong></td><td>${details.name || ""}</td></tr>
+                <tr><td><strong>Status:</strong></td><td><span class="badge ${getStatusBadgeClass(details.status)}">${details.status || ""}</span></td></tr>
+                <tr><td><strong>Started:</strong></td><td>${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
                 <tr><td><strong>Finished:</strong></td><td>${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
+                <tr><td><strong>Template:</strong></td><td>${details.template_name || ""}</td></tr>
+                <tr><td><strong>Project:</strong></td><td>${details.project_name || ""}</td></tr>
               </table>
             </div>
           `;
 
           if (details.extra_vars) {
-            detailsHtml += `
-              <div class="mb-3">
-                <h6>Variables</h6>
-                <pre><code>${JSON.stringify(JSON.parse(details.extra_vars), null, 2)}</code></pre>
-              </div>
-            `;
+            try {
+              const vars = typeof details.extra_vars === "string" ? JSON.parse(details.extra_vars) : details.extra_vars;
+              detailsHtml += `
+                <div class="mb-3">
+                  <h6>Variables</h6>
+                  <pre><code>${JSON.stringify(vars, null, 2)}</code></pre>
+                </div>
+              `;
+            } catch (e) {
+              console.error("Failed to parse extra_vars:", e);
+            }
           }
 
           $("#jobDetails").html(detailsHtml);
@@ -251,6 +271,8 @@
         } else {
           showToast("Error", "Failed to fetch job details: " + data.message);
         }
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        showToast("Error", "Failed to fetch job details: " + (errorThrown || textStatus));
       });
     }
 
