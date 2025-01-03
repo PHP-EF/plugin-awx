@@ -297,6 +297,7 @@
         data: jobs,
         pagination: true,
         pageSize: 25,
+        "order": [[ 0, "desc" ]],  // Sort by first column (ID) in descending order
         columns: [{
           field: "id",
           title: "ID",
