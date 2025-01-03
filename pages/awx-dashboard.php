@@ -296,8 +296,9 @@
       $("#awxJobsTable").bootstrapTable({
         data: jobs,
         pagination: true,
-        pageSize: 25,
-        "order": [[ 0, "desc" ]],  // Sort by first column (ID) in descending order
+        pageSize: 10,
+        sortName: 'id',
+        sortOrder: 'desc',
         columns: [{
           field: "id",
           title: "ID",
