@@ -156,33 +156,33 @@ class awxPluginAnsible extends awxPlugin {
 	  }
 	}
 
-	public function GetAnsibleJobActivityStream($id) {
+	public function GetAnsibleJobEventsStream($id) {
 	  if ($id) {
-	    $Result = $this->QueryAnsible("get", "jobs/" . $id . "/activity_stream");
+	    $Result = $this->QueryAnsible("get", "jobs/" . $id . "/job_events/");
 	    if ($Result) {
 		  $this->api->setAPIResponseData($Result);
 		  return $Result;
 	    } else {
-		  $this->api->setAPIResponse('Warning','No activity stream results returned from the API');
+		  $this->api->setAPIResponse('Warning','No job events results returned from the API');
 	    }
 	  } else {
 		$this->api->setAPIResponse('Error','Job ID is required');
 	  }
 	}
 
-	public function GetAnsibleActivityStream($id) {
-		if ($id) {
-		  $Result = $this->QueryAnsible("get", "activity_stream/".$id);
-		  if ($Result) {
-			$this->api->setAPIResponseData($Result);
-			return $Result;
-		  } else {
-			$this->api->setAPIResponse('Warning','No activity stream results returned from the API');
-		  }
-		} else {
-		  $this->api->setAPIResponse('Error','Activity Stream ID is required');
-		}
-	  }
+	// public function GetAnsibleActivityStream($id) {
+	// 	if ($id) {
+	// 	  $Result = $this->QueryAnsible("get", "activity_stream/".$id);
+	// 	  if ($Result) {
+	// 		$this->api->setAPIResponseData($Result);
+	// 		return $Result;
+	// 	  } else {
+	// 		$this->api->setAPIResponse('Warning','No activity stream results returned from the API');
+	// 	  }
+	// 	} else {
+	// 	  $this->api->setAPIResponse('Error','Activity Stream ID is required');
+	// 	}
+	//   }
 
 	public function SubmitAnsibleJob($id,$data) {
 	  $Result = $this->QueryAnsible("post", "job_templates/".$id."/launch/", $data);
