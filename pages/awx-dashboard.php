@@ -185,9 +185,9 @@
           data.data.results.forEach(activity => {
             activityHtml += `
               <tr>
-                <td>\${formatActivityTime(activity.timestamp)}</td>
-                <td>\${activity.operation || ""}</td>
-                <td>\${activity.changes || activity.description || ""}</td>
+                <td>${formatActivityTime(activity.timestamp)}</td>
+                <td>${activity.operation || ""}</td>
+                <td>${activity.changes || activity.description || ""}</td>
               </tr>
             `;
           });
@@ -218,19 +218,19 @@
             <div class="mb-3">
               <h6>Job Information</h6>
               <table class="table">
-                <tr><td><strong>ID:</strong></td><td>\${details.id || ""}</td></tr>
-                <tr><td><strong>Name:</strong></td><td>\${details.name || ""}</td></tr>
-                <tr><td><strong>Description:</strong></td><td>\${details.description || ""}</td></tr>
-                <tr><td><strong>Status:</strong></td><td><span class="badge \${getStatusBadgeClass(details.status)}">\${details.status || ""}</span></td></tr>
-                <tr><td><strong>Started:</strong></td><td>\${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
-                <tr><td><strong>Finished:</strong></td><td>\${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
-                <tr><td><strong>Elapsed:</strong></td><td>\${formatElapsedTime(details.elapsed)}</td></tr>
-                <tr><td><strong>Template:</strong></td><td>\${details.summary_fields?.job_template?.name || ""}</td></tr>
-                <tr><td><strong>Project:</strong></td><td>\${details.summary_fields?.project?.name || ""}</td></tr>
-                <tr><td><strong>Inventory:</strong></td><td>\${details.summary_fields?.inventory?.name || ""}</td></tr>
-                <tr><td><strong>Credentials:</strong></td><td>\${details.summary_fields?.credentials?.map(c => c.name).join(", ") || ""}</td></tr>
-                <tr><td><strong>Launch Type:</strong></td><td>\${details.launch_type || ""}</td></tr>
-                <tr><td><strong>Job Type:</strong></td><td>\${details.job_type || ""}</td></tr>
+                <tr><td><strong>ID:</strong></td><td>${details.id || ""}</td></tr>
+                <tr><td><strong>Name:</strong></td><td>${details.name || ""}</td></tr>
+                <tr><td><strong>Description:</strong></td><td>${details.description || ""}</td></tr>
+                <tr><td><strong>Status:</strong></td><td><span class="badge ${getStatusBadgeClass(details.status)}">${details.status || ""}</span></td></tr>
+                <tr><td><strong>Started:</strong></td><td>${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
+                <tr><td><strong>Finished:</strong></td><td>${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
+                <tr><td><strong>Elapsed:</strong></td><td>${formatElapsedTime(details.elapsed)}</td></tr>
+                <tr><td><strong>Template:</strong></td><td>${details.summary_fields?.job_template?.name || ""}</td></tr>
+                <tr><td><strong>Project:</strong></td><td>${details.summary_fields?.project?.name || ""}</td></tr>
+                <tr><td><strong>Inventory:</strong></td><td>${details.summary_fields?.inventory?.name || ""}</td></tr>
+                <tr><td><strong>Credentials:</strong></td><td>${details.summary_fields?.credentials?.map(c => c.name).join(", ") || ""}</td></tr>
+                <tr><td><strong>Launch Type:</strong></td><td>${details.launch_type || ""}</td></tr>
+                <tr><td><strong>Job Type:</strong></td><td>${details.job_type || ""}</td></tr>
               </table>
             </div>
           `;
@@ -239,8 +239,8 @@
             detailsHtml += `
               <div class="mb-3">
                 <h6>Job Explanation</h6>
-                <div class="alert \${details.failed ? "alert-danger" : "alert-info"}">
-                  \${details.job_explanation}
+                <div class="alert ${details.failed ? "alert-danger" : "alert-info"}>
+                  ${details.job_explanation}
                 </div>
               </div>`;
           }
@@ -251,7 +251,7 @@
               detailsHtml += `
                 <div class="mb-3">
                   <h6>Variables</h6>
-                  <pre><code>\${JSON.stringify(vars, null, 2)}</code></pre>
+                  <pre><code>${JSON.stringify(vars, null, 2)}</code></pre>
                 </div>
               `;
             } catch (e) {
