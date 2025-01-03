@@ -144,9 +144,9 @@ class awxPluginAnsible extends awxPlugin {
 	
 	public function GetAnsibleJobs($id = null) {
 	  if ($id) {
-	    $Result = $this->QueryAnsible("get", "jobs/" . $id);
+	    $Result = $this->QueryAnsible("get", "jobs/" . $id . "/?format=json");
 	  } else {
-	    $Result = $this->QueryAnsible("get", "jobs");
+	    $Result = $this->QueryAnsible("get", "jobs/?format=json");
 	  }
 	  if ($Result) {
 		$this->api->setAPIResponseData($Result);
