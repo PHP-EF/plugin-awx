@@ -167,41 +167,43 @@
     function loadJobEvents(jobId) {
       queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/job_events").done(function(data) {
         if (data.result === "Success" && data.data && Array.isArray(data.data)) {
-          let eventsHtml = `
-            <div class="mb-3">
-              <h6>Job Events</h6>
-              <div class="table-responsive">
-                <table class="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Time</th>
-                      <th>Event</th>
-                      <th>Task</th>
-                      <th>Host</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>`;
+          let eventsHtml = 
+            '<div class="mb-3">' +
+              '<h6>Job Events</h6>' +
+              '<div class="table-responsive">' +
+                '<table class="table table-sm">' +
+                  '<thead>' +
+                    '<tr>' +
+                      '<th>Time</th>' +
+                      '<th>Event</th>' +
+                      '<th>Task</th>' +
+                      '<th>Host</th>' +
+                      '<th>Status</th>' +
+                    '</tr>' +
+                  '</thead>' +
+                  '<tbody>';
 
           data.data.forEach(event => {
             const eventTime = new Date(event.created).toLocaleString();
             const statusClass = event.failed ? 'text-danger' : (event.changed ? 'text-warning' : 'text-success');
             
-            eventsHtml += `
-              <tr>
-                <td>${eventTime}</td>
-                <td>${event.event_display || event.event || ""}</td>
-                <td>${event.task || ""}</td>
-                <td>${event.host_name || ""}</td>
-                <td><span class="${statusClass}">${event.failed ? 'Failed' : (event.changed ? 'Changed' : 'OK')}</span></td>
-              </tr>`;
+            eventsHtml += 
+              '<tr>' +
+                '<td>' + eventTime + '</td>' +
+                '<td>' + (event.event_display || event.event || "") + '</td>' +
+                '<td>' + (event.task || "") + '</td>' +
+                '<td>' + (event.host_name || "") + '</td>' +
+                '<td><span class="' + statusClass + '">' + 
+                  (event.failed ? 'Failed' : (event.changed ? 'Changed' : 'OK')) + 
+                '</span></td>' +
+              '</tr>';
           });
 
-          eventsHtml += `
-                  </tbody>
-                </table>
-              </div>
-            </div>`;
+          eventsHtml +=
+                  '</tbody>' +
+                '</table>' +
+              '</div>' +
+            '</div>';
 
           $("#jobActivityStream").html(eventsHtml);
         } else {
@@ -218,46 +220,44 @@
       queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId).done(function(data) {
         if (data.result === "Success") {
           const details = data.data;
-          let detailsHtml = `
-            <div class="mb-3">
-              <h6>Job Information</h6>
-              <table class="table">
-                <tr><td><strong>ID:</strong></td><td>${details.id || ""}</td></tr>
-                <tr><td><strong>Name:</strong></td><td>${details.name || ""}</td></tr>
-                <tr><td><strong>Description:</strong></td><td>${details.description || ""}</td></tr>
-                <tr><td><strong>Status:</strong></td><td><span class="badge ${getStatusBadgeClass(details.status)}">${details.status || ""}</span></td></tr>
-                <tr><td><strong>Started:</strong></td><td>${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
-                <tr><td><strong>Finished:</strong></td><td>${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
-                <tr><td><strong>Elapsed:</strong></td><td>${formatElapsedTime(details.elapsed)}</td></tr>
-                <tr><td><strong>Template:</strong></td><td>${details.summary_fields?.job_template?.name || ""}</td></tr>
-                <tr><td><strong>Project:</strong></td><td>${details.summary_fields?.project?.name || ""}</td></tr>
-                <tr><td><strong>Inventory:</strong></td><td>${details.summary_fields?.inventory?.name || ""}</td></tr>
-                <tr><td><strong>Credentials:</strong></td><td>${details.summary_fields?.credentials?.map(c => c.name).join(", ") || ""}</td></tr>
-                <tr><td><strong>Launch Type:</strong></td><td>${details.launch_type || ""}</td></tr>
-                <tr><td><strong>Job Type:</strong></td><td>${details.job_type || ""}</td></tr>
-              </table>
-            </div>
-          `;
+          let detailsHtml = 
+            '<div class="mb-3">' +
+              '<h6>Job Information</h6>' +
+              '<table class="table">' +
+                '<tr><td><strong>ID:</strong></td><td>' + (details.id || "") + '</td></tr>' +
+                '<tr><td><strong>Name:</strong></td><td>' + (details.name || "") + '</td></tr>' +
+                '<tr><td><strong>Description:</strong></td><td>' + (details.description || "") + '</td></tr>' +
+                '<tr><td><strong>Status:</strong></td><td><span class="badge ' + getStatusBadgeClass(details.status) + '">' + (details.status || "") + '</span></td></tr>' +
+                '<tr><td><strong>Started:</strong></td><td>' + (details.started ? new Date(details.started).toLocaleString() : "") + '</td></tr>' +
+                '<tr><td><strong>Finished:</strong></td><td>' + (details.finished ? new Date(details.finished).toLocaleString() : "Running") + '</td></tr>' +
+                '<tr><td><strong>Elapsed:</strong></td><td>' + formatElapsedTime(details.elapsed) + '</td></tr>' +
+                '<tr><td><strong>Template:</strong></td><td>' + (details.summary_fields?.job_template?.name || "") + '</td></tr>' +
+                '<tr><td><strong>Project:</strong></td><td>' + (details.summary_fields?.project?.name || "") + '</td></tr>' +
+                '<tr><td><strong>Inventory:</strong></td><td>' + (details.summary_fields?.inventory?.name || "") + '</td></tr>' +
+                '<tr><td><strong>Credentials:</strong></td><td>' + (details.summary_fields?.credentials?.map(c => c.name).join(", ") || "") + '</td></tr>' +
+                '<tr><td><strong>Launch Type:</strong></td><td>' + (details.launch_type || "") + '</td></tr>' +
+                '<tr><td><strong>Job Type:</strong></td><td>' + (details.job_type || "") + '</td></tr>' +
+              '</table>' +
+            '</div>';
 
           if (details.job_explanation) {
-            detailsHtml += `
-              <div class="mb-3">
-                <h6>Job Explanation</h6>
-                <div class="alert ${details.failed ? "alert-danger" : "alert-info"}>
-                  ${details.job_explanation}
-                </div>
-              </div>`;
+            detailsHtml += 
+              '<div class="mb-3">' +
+                '<h6>Job Explanation</h6>' +
+                '<div class="alert ' + (details.failed ? "alert-danger" : "alert-info") + '">' +
+                  details.job_explanation +
+                '</div>' +
+              '</div>';
           }
 
           if (details.extra_vars) {
             try {
               const vars = typeof details.extra_vars === "string" ? JSON.parse(details.extra_vars) : details.extra_vars;
-              detailsHtml += `
-                <div class="mb-3">
-                  <h6>Variables</h6>
-                  <pre><code>${JSON.stringify(vars, null, 2)}</code></pre>
-                </div>
-              `;
+              detailsHtml += 
+                '<div class="mb-3">' +
+                  '<h6>Variables</h6>' +
+                  '<pre><code>' + JSON.stringify(vars, null, 2) + '</code></pre>' +
+                '</div>';
             } catch (e) {
               console.error("Failed to parse extra_vars:", e);
             }
@@ -323,7 +323,7 @@
                 badgeClass = "bg-warning";
                 break;
             }
-            return `<span class="badge ${badgeClass}">${value}</span>`;
+            return '<span class="badge ' + badgeClass + '">' + value + '</span>';
           }
         }, {
           field: "started",
@@ -345,9 +345,9 @@
           align: "center",
           formatter: function(value, row) {
             return [
-              `<button class="btn btn-primary btn-sm view-job" title="View Job Details" data-job-id="${row.id}">`,
-              `<i class="bi bi-eye"></i>`,
-              `</button>`
+              '<button class="btn btn-primary btn-sm view-job" title="View Job Details" data-job-id="' + row.id + '">',
+              '<i class="bi bi-eye"></i>',
+              '</button>'
             ].join("");
           },
           events: {
