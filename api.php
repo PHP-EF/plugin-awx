@@ -40,11 +40,10 @@ $app->get('/plugin/awx/ansible/templates', function ($request, $response, $args)
 });
 
 //  Return list of Ansible Jobs
-$app->get('/plugin/awx/ansible/jobs[/{id}]', function ($request, $response, $args) {
+$app->get('/plugin/awx/ansible/jobs', function ($request, $response, $args) {
 	$awxPlugin = new awxPluginAnsible();
 	if ($awxPlugin->auth->checkAccess($awxPlugin->config->get('Plugins','awx')['ACL-JOB'] ?? null)) {
-		$id = $args['id'] ?? null;
-		$jobs = $awxPlugin->GetAnsibleJobs($id);
+		$jobs = $awxPlugin->GetAnsibleJobs();
         if ($jobs) {
             $awxPlugin->api->setAPIResponseData($jobs);
         }
