@@ -76,11 +76,13 @@ $app->get('/plugin/awx/ansible/jobs/{id}/activity_stream', function ($request, $
     if ($awxPlugin->auth->checkAccess($awxPlugin->config->get('Plugins','awx')['ACL-JOB'] ?? null)) {
         $jobId = $args['id'];
         $job = $awxPlugin->GetAnsibleJobActivityStream($jobId);
-        if ($job) {
+        if ($job && isset($job['id'])) {
             $activityStream = $awxPlugin->GetAnsibleActivityStream($job['id']);
             if ($activityStream) {
                 $awxPlugin->api->setAPIResponseData($activityStream);
             }
+        } else {
+            $awxPlugin->api->setAPIResponse('Error', 'Job not found or invalid response');
         }
     }
     $response->getBody()->write(jsonE($GLOBALS['api']));
