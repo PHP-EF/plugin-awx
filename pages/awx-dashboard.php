@@ -130,19 +130,149 @@
       toast(title, "", message, type === "error" ? "danger" : type);
     }
 
-    // Function to update statistics
-    function updateStatistics(jobs) {
-      const stats = {
-        total: jobs.length,
-        successful: jobs.filter(job => job.status === "successful").length,
-        running: jobs.filter(job => job.status === "running").length,
-        failed: jobs.filter(job => job.status === "failed").length
-      };
+    // Function to get status badge class
+    function getStatusBadgeClass(status) {
+      switch(status) {
+        case "successful":
+          return "bg-success";
+        case "failed":
+          return "bg-danger";
+        case "running":
+          return "bg-primary";
+        case "pending":
+          return "bg-warning";
+        default:
+          return "bg-secondary";
+      }
+    }
 
-      $("#totalJobs").text(stats.total);
-      $("#successfulJobs").text(stats.successful);
-      $("#runningJobs").text(stats.running);
-      $("#failedJobs").text(stats.failed);
+    // Function to format elapsed time
+    function formatElapsedTime(seconds) {
+      if (!seconds) return "";
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = (seconds % 60).toFixed(0);
+      if (minutes > 0) {
+        return `${minutes}m ${remainingSeconds}s`;
+      }
+      return `${remainingSeconds}s`;
+    }
+
+    // Function to format activity timestamp
+    function formatActivityTime(timestamp) {
+      if (!timestamp) return "";
+      return new Date(timestamp).toLocaleString();
+    }
+
+    // Function to load job activity stream
+    function loadJobActivityStream(jobId) {
+      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/activity_stream").done(function(data) {
+        if (data.result === "Success" && data.data && data.data.results) {
+          let activityHtml = `
+            <div class="mb-3">
+              <h6>Activity Stream</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Action</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          data.data.results.forEach(activity => {
+            activityHtml += `
+              <tr>
+                <td>\${formatActivityTime(activity.timestamp)}</td>
+                <td>\${activity.operation || ""}</td>
+                <td>\${activity.changes || activity.description || ""}</td>
+              </tr>
+            `;
+          });
+
+          activityHtml += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+
+          $("#jobActivityStream").html(activityHtml);
+        } else {
+          $("#jobActivityStream").html("<div class=\"alert alert-info\">No activity stream available</div>");
+        }
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        $("#jobActivityStream").html("<div class=\"alert alert-danger\">Failed to load activity stream</div>");
+        console.error("Activity Stream Error:", jqXHR.responseText);
+      });
+    }
+
+    // Function to view job details
+    function viewJobDetails(jobId) {
+      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId).done(function(data) {
+        if (data.result === "Success") {
+          const details = data.data;
+          let detailsHtml = `
+            <div class="mb-3">
+              <h6>Job Information</h6>
+              <table class="table">
+                <tr><td><strong>ID:</strong></td><td>\${details.id || ""}</td></tr>
+                <tr><td><strong>Name:</strong></td><td>\${details.name || ""}</td></tr>
+                <tr><td><strong>Description:</strong></td><td>\${details.description || ""}</td></tr>
+                <tr><td><strong>Status:</strong></td><td><span class="badge \${getStatusBadgeClass(details.status)}">\${details.status || ""}</span></td></tr>
+                <tr><td><strong>Started:</strong></td><td>\${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
+                <tr><td><strong>Finished:</strong></td><td>\${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
+                <tr><td><strong>Elapsed:</strong></td><td>\${formatElapsedTime(details.elapsed)}</td></tr>
+                <tr><td><strong>Template:</strong></td><td>\${details.summary_fields?.job_template?.name || ""}</td></tr>
+                <tr><td><strong>Project:</strong></td><td>\${details.summary_fields?.project?.name || ""}</td></tr>
+                <tr><td><strong>Inventory:</strong></td><td>\${details.summary_fields?.inventory?.name || ""}</td></tr>
+                <tr><td><strong>Credentials:</strong></td><td>\${details.summary_fields?.credentials?.map(c => c.name).join(", ") || ""}</td></tr>
+                <tr><td><strong>Launch Type:</strong></td><td>\${details.launch_type || ""}</td></tr>
+                <tr><td><strong>Job Type:</strong></td><td>\${details.job_type || ""}</td></tr>
+              </table>
+            </div>
+          `;
+
+          if (details.job_explanation) {
+            detailsHtml += `
+              <div class="mb-3">
+                <h6>Job Explanation</h6>
+                <div class="alert \${details.failed ? "alert-danger" : "alert-info"}">
+                  \${details.job_explanation}
+                </div>
+              </div>`;
+          }
+
+          if (details.extra_vars) {
+            try {
+              const vars = typeof details.extra_vars === "string" ? JSON.parse(details.extra_vars) : details.extra_vars;
+              detailsHtml += `
+                <div class="mb-3">
+                  <h6>Variables</h6>
+                  <pre><code>\${JSON.stringify(vars, null, 2)}</code></pre>
+                </div>
+              `;
+            } catch (e) {
+              console.error("Failed to parse extra_vars:", e);
+            }
+          }
+
+          detailsHtml += "<div id=\"jobActivityStream\"></div>";
+
+          $("#jobDetails").html(detailsHtml);
+          $("#jobDetailsModal").modal("show");
+          
+          // Load activity stream after showing modal
+          loadJobActivityStream(details.id);
+        } else {
+          showToast("Error", "Failed to fetch job details: " + data.message);
+        }
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        showToast("Error", "Failed to fetch job details: " + (errorThrown || textStatus));
+        console.error("API Error:", jqXHR.responseText);
+      });
     }
 
     // Function to initialize the AWX jobs table
@@ -233,144 +363,19 @@
       });
     }
 
-    // Function to format elapsed time
-    function formatElapsedTime(seconds) {
-      if (!seconds) return "";
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = (seconds % 60).toFixed(0);
-      if (minutes > 0) {
-        return `${minutes}m ${remainingSeconds}s`;
-      }
-      return `${remainingSeconds}s`;
-    }
+    // Function to update statistics
+    function updateStatistics(jobs) {
+      const stats = {
+        total: jobs.length,
+        successful: jobs.filter(job => job.status === "successful").length,
+        running: jobs.filter(job => job.status === "running").length,
+        failed: jobs.filter(job => job.status === "failed").length
+      };
 
-    // Function to format activity timestamp
-    function formatActivityTime(timestamp) {
-      if (!timestamp) return "";
-      return new Date(timestamp).toLocaleString();
-    }
-
-    // Function to load job activity stream
-    function loadJobActivityStream(jobId) {
-      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId + "/activity_stream").done(function(data) {
-        if (data.result === "Success" && data.data && data.data.results) {
-          let activityHtml = `
-            <div class="mb-3">
-              <h6>Activity Stream</h6>
-              <div class="table-responsive">
-                <table class="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Time</th>
-                      <th>Action</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-          `;
-
-          data.data.results.forEach(activity => {
-            activityHtml += `
-              <tr>
-                <td>${formatActivityTime(activity.timestamp)}</td>
-                <td>${activity.operation || ""}</td>
-                <td>${activity.changes || activity.description || ""}</td>
-              </tr>
-            `;
-          });
-
-          activityHtml += `
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          `;
-
-          $("#jobActivityStream").html(activityHtml);
-        } else {
-          $("#jobActivityStream").html('<div class="alert alert-info">No activity stream available</div>');
-        }
-      }).fail(function(jqXHR, textStatus, errorThrown) {
-        $("#jobActivityStream").html('<div class="alert alert-danger">Failed to load activity stream</div>');
-        console.error("Activity Stream Error:", jqXHR.responseText);
-      });
-    }
-
-    // Function to view job details
-    function viewJobDetails(jobId) {
-      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId).done(function(data) {
-        if (data.result === "Success") {
-          const details = data.data;
-          let detailsHtml = `
-            <div class="mb-3">
-              <h6>Job Information</h6>
-              <table class="table">
-                <tr><td><strong>ID:</strong></td><td>${details.id || ""}</td></tr>
-                <tr><td><strong>Name:</strong></td><td>${details.name || ""}</td></tr>
-                <tr><td><strong>Description:</strong></td><td>${details.description || ""}</td></tr>
-                <tr><td><strong>Status:</strong></td><td><span class="badge ${getStatusBadgeClass(details.status)}">${details.status || ""}</span></td></tr>
-                <tr><td><strong>Started:</strong></td><td>${details.started ? new Date(details.started).toLocaleString() : ""}</td></tr>
-                <tr><td><strong>Finished:</strong></td><td>${details.finished ? new Date(details.finished).toLocaleString() : "Running"}</td></tr>
-                <tr><td><strong>Elapsed:</strong></td><td>${formatElapsedTime(details.elapsed)}</td></tr>
-                <tr><td><strong>Template:</strong></td><td>${details.summary_fields?.job_template?.name || ""}</td></tr>
-                <tr><td><strong>Project:</strong></td><td>${details.summary_fields?.project?.name || ""}</td></tr>
-                <tr><td><strong>Inventory:</strong></td><td>${details.summary_fields?.inventory?.name || ""}</td></tr>
-                <tr><td><strong>Credentials:</strong></td><td>${details.summary_fields?.credentials?.map(c => c.name).join(", ") || ""}</td></tr>
-                <tr><td><strong>Launch Type:</strong></td><td>${details.launch_type || ""}</td></tr>
-                <tr><td><strong>Job Type:</strong></td><td>${details.job_type || ""}</td></tr>
-              </table>
-            </div>
-          `;
-
-          if (details.job_explanation) {
-            detailsHtml += `
-              <div class="mb-3">
-                <h6>Job Explanation</h6>
-                <div class="alert \${details.failed ? 'alert-danger' : 'alert-info'}">
-                  ${details.job_explanation}
-                </div>
-              </div>`;
-          }
-
-          if (details.extra_vars) {
-            try {
-              const vars = typeof details.extra_vars === "string" ? JSON.parse(details.extra_vars) : details.extra_vars;
-              detailsHtml += `
-                <div class="mb-3">
-                  <h6>Variables</h6>
-                  <pre><code>${JSON.stringify(vars, null, 2)}</code></pre>
-                </div>
-              `;
-            } catch (e) {
-              console.error("Failed to parse extra_vars:", e);
-            }
-          }
-
-          detailsHtml += '<div id="jobActivityStream"></div>';
-
-          $("#jobDetails").html(detailsHtml);
-          $("#jobDetailsModal").modal("show");
-          
-          // Load activity stream after showing modal
-          loadJobActivityStream(details.id);
-        } else {
-          showToast("Error", "Failed to fetch job details: " + data.message);
-        }
-      }).fail(function(jqXHR, textStatus, errorThrown) {
-        showToast("Error", "Failed to fetch job details: " + (errorThrown || textStatus));
-        console.error("API Error:", jqXHR.responseText);
-      });
-    }
-
-    // Helper function to get status badge class
-    function getStatusBadgeClass(status) {
-      switch(status) {
-        case "successful": return "bg-success";
-        case "failed": return "bg-danger";
-        case "running": return "bg-primary";
-        case "pending": return "bg-warning";
-        default: return "bg-secondary";
-      }
+      $("#totalJobs").text(stats.total);
+      $("#successfulJobs").text(stats.successful);
+      $("#runningJobs").text(stats.running);
+      $("#failedJobs").text(stats.failed);
     }
 
     // Initialize the table when the page loads
