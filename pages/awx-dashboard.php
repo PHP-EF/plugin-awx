@@ -297,8 +297,8 @@
         data: jobs,
         pagination: true,
         pageSize: 10,
-        sortName: 'id',
-        sortOrder: 'desc',
+        sortName: "id",
+        sortOrder: "desc",
         columns: [{
           field: "id",
           title: "ID",
