@@ -235,7 +235,7 @@
 
     // Function to view job details
     function viewJobDetails(jobId) {
-      queryAPI("GET", "/api/plugin/awx/job/" + jobId).done(function(data) {
+      queryAPI("GET", "/api/plugin/awx/ansible/jobs/" + jobId).done(function(data) {
         if (data.result === "Success") {
           const details = data.data;
           let detailsHtml = `
@@ -273,6 +273,7 @@
         }
       }).fail(function(jqXHR, textStatus, errorThrown) {
         showToast("Error", "Failed to fetch job details: " + (errorThrown || textStatus));
+        console.error("API Error:", jqXHR.responseText);
       });
     }
 
