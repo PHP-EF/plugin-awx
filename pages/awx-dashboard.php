@@ -295,10 +295,13 @@
     function buildAWXJobsTable(jobs) {
       $("#awxJobsTable").bootstrapTable({
         data: jobs,
+        pagination: true,
+        pageSize: 25,
         columns: [{
           field: "id",
           title: "ID",
-          sortable: true
+          sortable: true,
+          width: 70
         }, {
           field: "name",
           title: "Name",
@@ -308,7 +311,7 @@
           title: "Status",
           sortable: true,
           formatter: function(value) {
-            let badgeClass = "bg-secondary";
+            let badgeClass;
             switch(value) {
               case "successful":
                 badgeClass = "bg-success";
@@ -320,7 +323,14 @@
                 badgeClass = "bg-primary";
                 break;
               case "pending":
+              case "waiting":
                 badgeClass = "bg-warning";
+                break;
+              case "canceled":
+                badgeClass = "bg-secondary";
+                break;
+              default:
+                badgeClass = "bg-secondary";
                 break;
             }
             return "<span class=\"badge " + badgeClass + "\">" + value + "</span>";
@@ -337,10 +347,15 @@
           title: "Finished",
           sortable: true,
           formatter: function(value) {
-            return value ? new Date(value).toLocaleString() : "Running";
+            return value ? new Date(value).toLocaleString() : "";
           }
         }, {
-          field: "operate",
+          field: "elapsed",
+          title: "Duration",
+          sortable: true,
+          formatter: formatElapsedTime
+        }, {
+          field: "actions",
           title: "Actions",
           align: "center",
           formatter: function(value, row) {
@@ -357,13 +372,6 @@
             }
           }
         }]
-      });
-
-      // Add click handler for view job button
-      $(document).on("click", ".view-job", function(e) {
-        e.preventDefault();
-        const jobId = $(this).data("job-id");
-        viewJobDetails(jobId);
       });
     }
 
