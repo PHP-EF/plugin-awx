@@ -15,7 +15,7 @@ $GLOBALS['plugins']['awx'] = [ // Plugin Name
 	'api' => '/api/plugin/awx/settings', // api route for settings page, or null if no settings page
 ];
 
-class awxPlugin extends ib {
+class awxPlugin extends phpef {
 	public function __construct() {
 		parent::__construct();
 	}
