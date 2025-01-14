@@ -38,9 +38,9 @@ class awxPlugin extends phpef {
 		}
 		return array(
 			'Plugin Settings' => array(
-				$this->settingsOption('auth', 'ACL-READ', ['label' => 'awx Read ACL']),
-				$this->settingsOption('auth', 'ACL-WRITE', ['label' => 'awx Write ACL']),
-				$this->settingsOption('auth', 'ACL-ADMIN', ['label' => 'awx Admin ACL']),
+				$this->settingsOption('auth', 'ACL-READ', ['label' => 'CMDB Read ACL']),
+				$this->settingsOption('auth', 'ACL-WRITE', ['label' => 'CMDB Write ACL']),
+				$this->settingsOption('auth', 'ACL-ADMIN', ['label' => 'CMDB Admin ACL']),
 				$this->settingsOption('auth', 'ACL-JOB', ['label' => 'Grants access to use Ansible Integration'])
 			),
 			'Ansible Settings' => array(
