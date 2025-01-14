@@ -29,18 +29,10 @@ class awxPlugin extends phpef {
 			"value" => ""
 		];
 		if ($AnsibleLabels) {
-			$AnsibleLabelsKeyValuePairs = array_merge($AnsibleLabelsKeyValuePairs, array_map(function($item) {
-				if (is_array($item) && isset($item['name'])) {
-					return [
-						"name" => $item['name'],
-						"value" => $item['name']
-					];
-				}
-				// If item is a string or doesn't have 'name' key, use it directly
-				$value = is_string($item) ? $item : '';
+			$AnsibleLabelsKeyValuePairs = array_merge($AnsibleLabelsKeyValuePairs,array_map(function($item) {
 				return [
-					"name" => $value,
-					"value" => $value
+					"name" => $item['name'],
+					"value" => $item['name']
 				];
 			}, $AnsibleLabels));
 		}
