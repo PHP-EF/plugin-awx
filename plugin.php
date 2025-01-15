@@ -9,7 +9,7 @@ $GLOBALS['plugins']['awx'] = [ // Plugin Name
 	'author' => 'TinyTechLabUK', // Who wrote the plugin
 	'category' => 'Ansible AWX', // One to Two Word Description
 	'link' => 'https://github.com/PHP-EF/plugin-awx', // Link to plugin info
-	'version' => '1.0.2', // SemVer of plugin
+	'version' => '1.0.3', // SemVer of plugin
 	'image' => 'logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'api' => '/api/plugin/awx/settings', // api route for settings page, or null if no settings page
@@ -29,10 +29,18 @@ class awxPlugin extends phpef {
 			"value" => ""
 		];
 		if ($AnsibleLabels) {
-			$AnsibleLabelsKeyValuePairs = array_merge($AnsibleLabelsKeyValuePairs,array_map(function($item) {
+			$AnsibleLabelsKeyValuePairs = array_merge($AnsibleLabelsKeyValuePairs, array_map(function($item) {
+				if (is_array($item) && isset($item['name'])) {
+					return [
+						"name" => $item['name'],
+						"value" => $item['name']
+					];
+				}
+				// If item is a string or doesn't have 'name' key, use it directly
+				$value = is_string($item) ? $item : '';
 				return [
-					"name" => $item['name'],
-					"value" => $item['name']
+					"name" => $value,
+					"value" => $value
 				];
 			}, $AnsibleLabels));
 		}
@@ -61,13 +69,21 @@ class awxPluginAnsible extends awxPlugin {
 
 	public function QueryAnsible($Method, $Uri, $Data = "") {
 		$awxConfig = $this->config->get("Plugins","awx");
-		$AnsibleApiKey = $awxConfig["Ansible-Token"] ?? null;
 		$AnsibleUrl = $awxConfig['Ansible-URL'] ?? null;
 
-		if (!$AnsibleApiKey) {
-				$this->api->setAPIResponse('Error','Ansible API Key Missing');
-				return false;
-		}
+        if (!isset($awxConfig['Ansible-Token']) || empty($awxConfig['Ansible-Token'])) {
+            $this->api->setAPIResponse('Error','Ansible API Key Missing');
+            $this->logging->writeLog("CMDB","Ansible API Key Missing","error");
+            return false;
+        } else {
+            try {
+                $AnsibleApiKey = decrypt($awxConfig['Ansible-Token'],$this->config->get('Security','salt'));
+            } catch (Exception $e) {
+                $this->api->setAPIResponse('Error','Unable to decrypt Ansible API Key');
+                $this->logging->writeLog('AWX','Unable to decrypt Ansible API Key','error');
+                return false;
+            }
+        }
 
 		if (!$AnsibleUrl) {
 				$this->api->setAPIResponse('Error','Ansible URL Missing');
