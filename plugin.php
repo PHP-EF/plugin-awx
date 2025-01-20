@@ -106,51 +106,120 @@ class awxPluginAnsible extends awxPlugin {
 		} else {
 			$Result = $this->api->query->$Method($Url,$Data,$AnsibleHeaders,null,true);
 		}
-		
+		if (isset($Result->status_code)) {
+		  if ($Result->status_code >= 400 && $Result->status_code < 600) {
+			switch($Result->status_code) {
+			  case 401:
+				$this->api->setAPIResponse('Error','Ansible API Key incorrect or expired');
+				$this->logging->writeLog("Ansible","Error. Ansible API Key incorrect or expired.","error");
+				break;
+			  case 404:
+				$this->api->setAPIResponse('Error','HTTP 404 Not Found');
+				break;
+			  default:
+				$this->api->setAPIResponse('Error','HTTP '.$Result->status_code);
+				break;
+			}
+		  }
+		}
 		if ($Result->body) {
 		  $Output = json_decode($Result->body,true);
-		  
-		  // Check if this is a paginated response
-		  if (isset($Output['next']) && isset($Output['results'])) {
-		    $allResults = $Output['results'];
-		    $nextUrl = $Output['next'];
-		    
-		    // Keep fetching next pages while available
-		    while ($nextUrl) {
-		      // Ensure the next URL is absolute
-		      if (strpos($nextUrl, 'http') !== 0) {
-		        $nextUrl = $AnsibleUrl . $nextUrl;
-		      }
-		      
-		      $nextResult = $this->api->query->get($nextUrl, $AnsibleHeaders, null, true);
-		      if ($nextResult && $nextResult->body) {
-		        $nextOutput = json_decode($nextResult->body, true);
-		        if (isset($nextOutput['results'])) {
-		          $allResults = array_merge($allResults, $nextOutput['results']);
-		          $nextUrl = $nextOutput['next'] ?? null;
-		          if ($nextUrl && strpos($nextUrl, 'http') !== 0) {
-		            $nextUrl = $AnsibleUrl . $nextUrl;
-		          }
-		        } else {
-		          break;
-		        }
-		      } else {
-		        break;
-		      }
-		    }
-		    
-		    $this->api->setAPIResponseData($allResults);
-		    return $allResults;
+		  if (isset($Output['results'])) {
+				return $Output['results'];
+		  } else {
+				return $Output;
 		  }
-		  
-		  // Non-paginated response
-		  $this->api->setAPIResponseData($Output);
-		  return $Output;
+		} else {
+			if (!$GLOBALS['api']['data']) {
+				$this->api->setAPIResponse('Warning','No results returned from the API');
+			}
 		}
-		
-		$this->api->setAPIResponse('Warning','No results returned from the API');
-		return false;
 	}
+
+	// public function QueryAnsible($Method, $Uri, $Data = "") {
+	// 	$awxConfig = $this->config->get("Plugins","awx");
+	// 	$AnsibleUrl = $awxConfig['Ansible-URL'] ?? null;
+
+    //     if (!isset($awxConfig['Ansible-Token']) || empty($awxConfig['Ansible-Token'])) {
+    //         $this->api->setAPIResponse('Error','Ansible API Key Missing');
+    //         $this->logging->writeLog("CMDB","Ansible API Key Missing","error");
+    //         return false;
+    //     } else {
+    //         try {
+    //             $AnsibleApiKey = decrypt($awxConfig['Ansible-Token'],$this->config->get('Security','salt'));
+    //         } catch (Exception $e) {
+    //             $this->api->setAPIResponse('Error','Unable to decrypt Ansible API Key');
+    //             $this->logging->writeLog('AWX','Unable to decrypt Ansible API Key','error');
+    //             return false;
+    //         }
+    //     }
+
+	// 	if (!$AnsibleUrl) {
+	// 			$this->api->setAPIResponse('Error','Ansible URL Missing');
+	// 			return false;
+	// 	}
+
+	// 	$AnsibleHeaders = array(
+	// 	 'Authorization' => "Bearer $AnsibleApiKey",
+	// 	 'Content-Type' => "application/json"
+	// 	);
+
+	// 	if (strpos($Uri,$AnsibleUrl."/api/") === FALSE) {
+	// 	  $Url = $AnsibleUrl."/api/v2/".$Uri;
+	// 	} else {
+	// 	  $Url = $Uri;
+	// 	}
+
+	// 	if ($Method == "get") {
+	// 		$Result = $this->api->query->$Method($Url,$AnsibleHeaders,null,true);
+	// 	} else {
+	// 		$Result = $this->api->query->$Method($Url,$Data,$AnsibleHeaders,null,true);
+	// 	}
+		
+	// 	if ($Result->body) {
+	// 	  $Output = json_decode($Result->body,true);
+		  
+	// 	  // Check if this is a paginated response
+	// 	  if (isset($Output['next']) && isset($Output['results'])) {
+	// 	    $allResults = $Output['results'];
+	// 	    $nextUrl = $Output['next'];
+		    
+	// 	    // Keep fetching next pages while available
+	// 	    while ($nextUrl) {
+	// 	      // Ensure the next URL is absolute
+	// 	      if (strpos($nextUrl, 'http') !== 0) {
+	// 	        $nextUrl = $AnsibleUrl . $nextUrl;
+	// 	      }
+		      
+	// 	      $nextResult = $this->api->query->get($nextUrl, $AnsibleHeaders, null, true);
+	// 	      if ($nextResult && $nextResult->body) {
+	// 	        $nextOutput = json_decode($nextResult->body, true);
+	// 	        if (isset($nextOutput['results'])) {
+	// 	          $allResults = array_merge($allResults, $nextOutput['results']);
+	// 	          $nextUrl = $nextOutput['next'] ?? null;
+	// 	          if ($nextUrl && strpos($nextUrl, 'http') !== 0) {
+	// 	            $nextUrl = $AnsibleUrl . $nextUrl;
+	// 	          }
+	// 	        } else {
+	// 	          break;
+	// 	        }
+	// 	      } else {
+	// 	        break;
+	// 	      }
+	// 	    }
+		    
+	// 	    $this->api->setAPIResponseData($allResults);
+	// 	    return $allResults;
+	// 	  }
+		  
+	// 	  // Non-paginated response
+	// 	  $this->api->setAPIResponseData($Output);
+	// 	  return $Output;
+	// 	}
+		
+	// 	$this->api->setAPIResponse('Warning','No results returned from the API');
+	// 	return false;
+	// }
 	
 	public function GetAnsibleJobTemplate($id = null,$label = null) {
 	  $Filters = array();
