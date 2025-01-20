@@ -73,7 +73,7 @@ class awxPluginAnsible extends awxPlugin {
 
         if (!isset($awxConfig['Ansible-Token']) || empty($awxConfig['Ansible-Token'])) {
             $this->api->setAPIResponse('Error','Ansible API Key Missing');
-            $this->logging->writeLog("CMDB","Ansible API Key Missing","error");
+            $this->logging->writeLog("AWX","Ansible API Key Missing","error");
             return false;
         } else {
             try {
