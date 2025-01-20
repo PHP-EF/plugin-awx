@@ -126,7 +126,17 @@ class awxPluginAnsible extends awxPlugin {
 					$Output = json_decode($Result->body, true);
 					if (isset($Output['results'])) {
 						$allResults = array_merge($allResults, $Output['results']);
-						$nextUrl = $Output['next'] ?? null;
+						$next = $Output['next'] ?? null;
+						// Handle relative URLs by converting them to absolute URLs
+						if ($next) {
+							if (strpos($next, 'http') !== 0) {
+								$nextUrl = $AnsibleUrl . (strpos($next, '/') === 0 ? $next : '/' . $next);
+							} else {
+								$nextUrl = $next;
+							}
+						} else {
+							$nextUrl = null;
+						}
 					} else {
 						return $Output;
 					}
