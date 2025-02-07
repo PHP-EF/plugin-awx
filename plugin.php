@@ -21,6 +21,7 @@ class awxPlugin extends phpef {
 	}
 
 	public function _pluginGetSettings() {
+		$awxConfig = $this->config->get("Plugins","awx");
 		$Ansible = new awxPluginAnsible();
 		$AnsibleLabels = $Ansible->GetAnsibleLabels() ?? null;
 		$AnsibleLabelsKeyValuePairs = [];
@@ -44,7 +45,7 @@ class awxPlugin extends phpef {
 			'Ansible Settings' => array(
 				$this->settingsOption('url', 'Ansible-URL', ['label' => 'Ansible AWX URL']),
 				$this->settingsOption('token', 'Ansible-Token', ['label' => 'Ansible AWX Token']),
-				$this->settingsOption('select2', 'Ansible-Tag', ['label' => 'The tag(s) to use to restrict available jobs', 'options' => $AnsibleLabelsKeyValuePairs, 'settings' => '{tags: false, closeOnSelect: true, allowClear: true, width: "100%"}'])
+				$this->settingsOption('select2', 'Ansible-Tag', ['label' => 'The tag(s) to use to restrict available jobs', 'options' => $AnsibleLabelsKeyValuePairs, 'value' => isset($awxConfig['Ansible-Tag']) ? implode(',',$awxConfig['Ansible-Tag']) : null, 'settings' => '{tags: false, closeOnSelect: true, allowClear: true, width: "100%"}'])
 			),
 		);
 	}
