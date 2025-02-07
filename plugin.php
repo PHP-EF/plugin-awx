@@ -24,10 +24,6 @@ class awxPlugin extends phpef {
 		$Ansible = new awxPluginAnsible();
 		$AnsibleLabels = $Ansible->GetAnsibleLabels() ?? null;
 		$AnsibleLabelsKeyValuePairs = [];
-		$AnsibleLabelsKeyValuePairs[] = [
-			"name" => "None",
-			"value" => ""
-		];
 		if ($AnsibleLabels) {
 			$AnsibleLabelsKeyValuePairs = array_merge($AnsibleLabelsKeyValuePairs, array_map(function($item) {
 				if (is_array($item) && isset($item['name'])) {
@@ -54,9 +50,7 @@ class awxPlugin extends phpef {
 			'Ansible Settings' => array(
 				$this->settingsOption('url', 'Ansible-URL', ['label' => 'Ansible AWX URL']),
 				$this->settingsOption('token', 'Ansible-Token', ['label' => 'Ansible AWX Token']),
-				$this->settingsOption('select2', 'Ansible-Tag', ['label' => 'The tag to use when filtering available jobs', 'options' => $AnsibleLabelsKeyValuePairs, 'settings' => '{tags: false, closeOnSelect: true, allowClear: true, width: "100%"}']),
-				$this->settingsOption('blank'),
-				$this->settingsOption('checkbox','Ansible-JobByLabel', ['label' => 'Organise Jobs by Label'])
+				$this->settingsOption('select2', 'Ansible-Tag', ['label' => 'The tag(s) to use to restrict available jobs', 'options' => $AnsibleLabelsKeyValuePairs, 'settings' => '{tags: false, closeOnSelect: true, allowClear: true, width: "100%"}'])
 			),
 		);
 	}
