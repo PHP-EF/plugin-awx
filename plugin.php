@@ -41,12 +41,6 @@ class awxPlugin extends phpef {
 			}, $AnsibleLabels));
 		}
 		return array(
-			'Plugin Settings' => array(
-				$this->settingsOption('auth', 'ACL-READ', ['label' => 'CMDB Read ACL']),
-				$this->settingsOption('auth', 'ACL-WRITE', ['label' => 'CMDB Write ACL']),
-				$this->settingsOption('auth', 'ACL-ADMIN', ['label' => 'CMDB Admin ACL']),
-				$this->settingsOption('auth', 'ACL-JOB', ['label' => 'Grants access to use Ansible Integration'])
-			),
 			'Ansible Settings' => array(
 				$this->settingsOption('url', 'Ansible-URL', ['label' => 'Ansible AWX URL']),
 				$this->settingsOption('token', 'Ansible-Token', ['label' => 'Ansible AWX Token']),
