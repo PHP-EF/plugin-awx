@@ -131,7 +131,7 @@ $app->post('/plugin/awx/ansible/job/{id}', function ($request, $response, $args)
 			"request" => $data,
 			"response" => $result
 		);
-		if (isset($result->job)) {
+		if (isset($result['job'])) {
 			$awxPlugin->logging->writeLog("Ansible","Submitted Ansible Job.","info",$DebugArr);
 			$awxPlugin->api->setAPIResponseData($result);
 		} else {
