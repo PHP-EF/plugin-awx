@@ -144,3 +144,17 @@ $app->post('/plugin/awx/ansible/job/{id}', function ($request, $response, $args)
 		->withHeader('Content-Type', 'application/json;charset=UTF-8')
 		->withStatus($GLOBALS['responseCode']);
 });
+// Get AWX Inventories
+$app->get('/plugin/awx/ansible/awx/inventories', function ($request, $response, $args) {
+	$awxPlugin = new awxPluginAnsible();
+    if ($awxPlugin->auth->checkAccess($awxPlugin->config->get('Plugins','awx')['ACL-READ'] ?? null)) {
+        $inventories = $awxPlugin->GetAnsibleInventories();
+        if ($inventories) {
+            $awxPlugin->api->setAPIResponseData($inventories);
+        }
+    }
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});	

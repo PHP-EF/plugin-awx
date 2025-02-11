@@ -9,7 +9,7 @@ $GLOBALS['plugins']['awx'] = [ // Plugin Name
 	'author' => 'TinyTechLabUK', // Who wrote the plugin
 	'category' => 'Ansible AWX', // One to Two Word Description
 	'link' => 'https://github.com/PHP-EF/plugin-awx', // Link to plugin info
-	'version' => '1.0.3', // SemVer of plugin
+	'version' => '1.0.4', // SemVer of plugin
 	'image' => 'logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'api' => '/api/plugin/awx/settings', // api route for settings page, or null if no settings page
@@ -232,6 +232,16 @@ class awxPluginAnsible extends awxPlugin {
 
 	public function GetAnsibleLabels() {
 		$Result = $this->QueryAnsible("get", "labels/?order_by=name");
+		if ($Result) {
+			$this->api->setAPIResponseData($Result);
+			return $Result;
+		} else {
+			$this->api->setAPIResponse('Warning','No results returned from the API');
+		}
+	}
+
+	public function GetAnsibleInventories() {
+		$Result = $this->QueryAnsible("get", "inventories/");
 		if ($Result) {
 			$this->api->setAPIResponseData($Result);
 			return $Result;
